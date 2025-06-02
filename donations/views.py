@@ -1,10 +1,13 @@
+from datetime import timezone
 from rest_framework import generics, permissions
 from .models import Donation
 from .serializers import DonationSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from projects.models import Project
+from project.models import Project
 from django.db.models import Sum
+
+from donations import serializers
 
 class CreateDonationView(generics.CreateAPIView):
     queryset = Donation.objects.all()
