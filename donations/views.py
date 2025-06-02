@@ -1,25 +1,21 @@
-from datetime import timezone
-from rest_framework import generics, permissions
+from rest_framework import viewsets, permissions, filters
 from .models import Donation
 from .serializers import DonationSerializer
-from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
-from project.models import Project
+from rest_framework.response import Response
 from django.db.models import Sum
 
-from donations import serializers
-
-class CreateDonationView(generics.CreateAPIView):
+class DonationViewSet(viewsets.ModelViewSet):
     queryset = Donation.objects.all()
     serializer_class = DonationSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['project', 'amount', 'created_at']
+    ordering_fields = ['amount', 'created_at']
 
     def perform_create(self, serializer):
-        project = serializer.validated_data['project']
-        if project.is_cancelled or timezone.now() > project.end_time:
-            raise serializers.ValidationError("Project is not available for donation.")
         serializer.save(user=self.request.user)
-
 
 class ProjectTotalDonationsView(APIView):
     def get(self, request, pk):

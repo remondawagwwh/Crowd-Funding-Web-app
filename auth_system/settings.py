@@ -42,7 +42,15 @@ INSTALLED_APPS = [
     'social_django',
     'corsheaders',
     'project.apps.ProjectConfig',
+    'django_filters',
+    'donations',
 ]
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+}
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

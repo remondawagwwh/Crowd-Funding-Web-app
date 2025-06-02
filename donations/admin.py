@@ -4,5 +4,5 @@ from .models import Donation
 @admin.register(Donation)
 class DonationAdmin(admin.ModelAdmin):
     list_display = ('user', 'project', 'amount', 'created_at')
-    list_filter = ('created_at',)
+    list_filter = ('created_at', 'project')
     search_fields = ('user__email', 'project__title')

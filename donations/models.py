@@ -11,10 +11,5 @@ class Donation(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def save(self, *args, **kwargs):
-        if self.project.is_cancelled or timezone.now() > self.project.end_time:
-            raise ValueError("You cannot donate to a cancelled or expired project.")
-        super().save(*args, **kwargs)
-
-
-
+    def __str__(self):
+        return f'{self.user} - {self.project} - {self.amount}'
