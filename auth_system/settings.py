@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'project.apps.ProjectConfig',
     'django_filters',
     'donations',
+     
 ]
 
 
