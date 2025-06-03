@@ -14,9 +14,11 @@ from django.utils.http import urlsafe_base64_encode
 from django.contrib.sites.shortcuts import get_current_site
 from rest_framework.permissions import IsAuthenticated
 from .serializers import UserProfileSerializer
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 
 
-# CRUD ViewSet for Users
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = MyUser.objects.all()
     serializer_class = MyUser_ser
@@ -158,4 +160,7 @@ def delete_account(request):
 
     user.delete()
     return Response({'message': 'Account deleted successfully'}, status=status.HTTP_200_OK)
+
+class FacebookLogin(SocialLoginView):
+    adapter_class = FacebookOAuth2Adapter
 

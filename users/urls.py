@@ -9,4 +9,5 @@ urlpatterns = [
     path('reset-password/<str:uid>/<str:token>/', reset_password, name='reset-password'),
     path('profile/', user_profile, name='user-profile'),
     path('profile/delete/', delete_account, name='delete-account'),
+
 ]
