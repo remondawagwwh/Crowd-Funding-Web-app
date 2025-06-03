@@ -40,9 +40,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'knox',
     'social_django',
     'corsheaders',
+
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.facebook',
+    'dj_rest_auth',
+    #'dj_rest_auth.registration',
+
 ]
 
 MIDDLEWARE = [
@@ -54,6 +64,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'auth_system.urls'
@@ -130,7 +141,6 @@ USE_TZ = True
 STATIC_URL = 'static/'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 AUTH_USER_MODEL = 'users.MyUser'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -154,9 +164,10 @@ EMAIL_HOST_PASSWORD = 'nchn ywsc edly vioh'  # App Password اللي طلعتي�
 DEFAULT_FROM_EMAIL = 'remondawageh88@gmail.com'
 
 AUTHENTICATION_BACKENDS = (
-    'social_core.backends.facebook.FacebookOAuth2',
     'django.contrib.auth.backends.ModelBackend',
+    'users.backends.EmailBackend',  # لو عندك Backend يخلّي تسجيل الدخول بالإيميل
 )
+
 
 SOCIAL_AUTH_FACEBOOK_KEY = '1387155645842702'
 SOCIAL_AUTH_FACEBOOK_SECRET = 'e756034141af46a873b7aefeea50223b'
@@ -164,11 +175,36 @@ SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id, name, email'
 }
-CORS_ALLOW_ALL_ORIGINS = True  # For development only
+CORS_ALLOW_ALL_ORIGINS = True
 
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-    ]}
+SOCIALACCOUNT_PROVIDERS = {
+    'facebook': {
+        'METHOD': 'oauth2',
+        'SCOPE': ['email'],
+        'FIELDS': [
+            'id',
+            'email',
+            'name',
+            'first_name',
+            'last_name',
+            'picture.type(large)',
+        ],
+        'EXCHANGE_TOKEN': True,
+        'VERIFIED_EMAIL': False,
+        'VERSION': 'v19.0',
+    }
+}
+
+
+
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password']
+ACCOUNT_LOGIN_METHODS = ['email']
+
+# REST_AUTH_REGISTER_SERIALIZERS = {
+#     'REGISTER_SERIALIZER': 'users.serializers.CustomRegisterSerializer',
+# }
+
+SITE_ID = 1
 
