@@ -73,24 +73,26 @@ class UserLoginSerializer(serializers.Serializer):
         return user
 
 
-class PasswordResetRequestSerializer(serializers.Serializer):
-    uid = serializers.CharField(required=True)
-    token = serializers.CharField(required=True)
+class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
+    def validate_email(self, value):
+        try:
+            user = MyUser.objects.get(email=value)
+        except MyUser.DoesNotExist:
+            raise serializers.ValidationError("User with this email doesn't exist.")
+        return value
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField(write_only=True,validators=[validate_password])
+    confirm_password = serializers.CharField(write_only=True)
+
     def validate(self, data):
-        if data['new_password'] != data['confirm_new_password']:
+        if data['new_password'] != data['confirm_password']:
             raise serializers.ValidationError("Passwords do not match.")
         return data
 
-class PasswordResetConfirmSerializer(serializers.Serializer):
-    new_password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    confirm_new_password = serializers.CharField(write_only=True)
-
-    def validate(self, data):
-        if data['new_password'] != data['confirm_new_password']:
-            raise serializers.ValidationError("Passwords do not match.")
-        return data
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:

@@ -26,6 +26,9 @@ class MyUser(AbstractUser):
     activation_token = models.CharField(max_length=100, blank=True)
     activation_token_expires = models.DateTimeField(null=True, blank=True)
 
+    reset_token = models.CharField(max_length=100, blank=True)
+    reset_token_expires = models.DateTimeField(null=True, blank=True)
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'mobile_phone']
 
@@ -45,6 +48,19 @@ class MyUser(AbstractUser):
             self.save()
             return True
         return False
+
+
+
+    def generate_reset_token(self):
+        self.reset_token = get_random_string(50)
+        self.reset_token_expires = timezone.now() + timezone.timedelta(hours=1)
+        self.save()
+        return self.reset_token
+
+    def check_reset_token(self, token):
+        return (self.reset_token == token and
+                self.reset_token_expires and
+                timezone.now() < self.reset_token_expires)
 
     @classmethod
     def getalluser(cls):
