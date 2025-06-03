@@ -22,17 +22,17 @@ class MyUser_ser(serializers.ModelSerializer):
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True,validators=[validate_password])
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     confirm_password = serializers.CharField(write_only=True)
     profile_picture = serializers.ImageField(required=False)
 
     class Meta:
         model = MyUser
-        fields = ['first_name', 'last_name', 'email', 'password', 'confirm_password',
+        fields = ['username', 'first_name', 'last_name', 'email', 'password', 'confirm_password',
                   'mobile_phone', 'profile_picture']
-        extra_kwargs = {
-            'password': {'write_only': True},
-        }
+        extra_kwargs = {'password': {'write_only': True}}
+
     def validate_mobile_phone(self, value):
         if not re.match(r'^01[0125][0-9]{8}$', value):
             raise ValidationError("Phone number must be Egyptian and in the format: '01XXXXXXXXX'.")
@@ -42,13 +42,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         if data['password'] != data['confirm_password']:
             raise serializers.ValidationError("Passwords do not match.")
 
-        # Check if email already exists
         if MyUser.objects.filter(email=data['email']).exists():
             raise serializers.ValidationError({"email": "A user with this email already exists."})
 
-        # Check if username already exists
         if MyUser.objects.filter(username=data['username']).exists():
             raise serializers.ValidationError({"username": "A user with this username already exists."})
+
         return data
 
     def create(self, validated_data):
