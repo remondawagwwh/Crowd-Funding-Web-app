@@ -73,14 +73,6 @@ class UserLoginSerializer(serializers.Serializer):
         return user
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MyUser
-        fields = ['first_name', 'last_name', 'email', 'mobile_phone',
-                  'profile_picture', 'birthdate', 'facebook_profile', 'country']
-        read_only_fields = ['email']
-
-
 class PasswordResetRequestSerializer(serializers.Serializer):
     uid = serializers.CharField(required=True)
     token = serializers.CharField(required=True)
