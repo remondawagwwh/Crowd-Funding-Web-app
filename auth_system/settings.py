@@ -50,8 +50,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.facebook',
-
-    #'dj_rest_auth',
+    'dj_rest_auth',
     #'dj_rest_auth.registration',
 
 ]
@@ -198,16 +197,14 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 
-LOGIN_REDIRECT_URL = '/'
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # بدل 'none'
-ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password']
+ACCOUNT_LOGIN_METHODS = ['email']
+
 # REST_AUTH_REGISTER_SERIALIZERS = {
 #     'REGISTER_SERIALIZER': 'users.serializers.CustomRegisterSerializer',
 # }
 
 SITE_ID = 1
-
 

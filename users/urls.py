@@ -14,7 +14,7 @@ from .views import (
 
 
 urlpatterns = [
-    path('users/', UserViewSet, name='AllUser'),
+    path('users/', UserViewSet.as_view({'get': 'list'}), name='AllUser'),
     path('register/', UserRegistrationView, name='register'),
     path('activate/<uid>/<token>/', verify_email, name='activate'),
     path('login/', UserLoginView, name='user-login'),
