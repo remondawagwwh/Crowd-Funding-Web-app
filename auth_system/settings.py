@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'knox',
     'social_django',
     'corsheaders',
+    'comment_app',
 ]
 
 MIDDLEWARE = [
