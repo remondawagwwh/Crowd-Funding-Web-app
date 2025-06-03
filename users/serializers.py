@@ -9,7 +9,8 @@ import re
 class MyUser_ser(serializers.ModelSerializer):
     class Meta:
         model=MyUser
-        fields='__all__'
+        fields = ['id', 'first_name', 'last_name', 'email', 'mobile_phone', 'profile_picture', 'birthdate',
+                  'facebook_profile', 'country', 'is_active']
 
     @classmethod
     def getall(cls):

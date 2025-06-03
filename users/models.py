@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 class MyUser(AbstractUser):
 
     email = models.EmailField(unique=True)
-
+    username = models.CharField(max_length=150, unique=True)
     mobile_phone = models.CharField(
         validators=[RegexValidator(
             regex=r'^01[0125][0-9]{8}$',
@@ -17,7 +17,6 @@ class MyUser(AbstractUser):
         max_length=11,
         unique=True
     )
-
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
     birthdate = models.DateField(null=True, blank=True)
     facebook_profile = models.URLField(null=True, blank=True)
