@@ -93,12 +93,13 @@ class ResetPasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError("Passwords do not match.")
         return data
 
-
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
-        fields = ['first_name', 'last_name', 'email', 'mobile_phone',
-                  'profile_picture', 'birthdate', 'facebook_profile', 'country']
+        fields = [
+            'email', 'username', 'first_name', 'last_name', 'mobile_phone',
+            'profile_picture', 'birthdate', 'facebook_profile', 'country'
+        ]
         read_only_fields = ['email']
 
 class AccountDeleteSerializer(serializers.Serializer):

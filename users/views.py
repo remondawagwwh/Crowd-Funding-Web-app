@@ -12,6 +12,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.utils.http import urlsafe_base64_encode
 from django.contrib.sites.shortcuts import get_current_site
+from rest_framework.permissions import IsAuthenticated
+from .serializers import UserProfileSerializer
 
 
 # CRUD ViewSet for Users
@@ -119,7 +121,41 @@ def reset_password(request, uid, token):
         user.reset_token = ''
         user.reset_token_expires = None
         user.save()
-        return Response({'msg': 'Password reset successful'}, status=200)
+        return Response({'msg': 'Password reset successful'}, status.HTTP_200_OK)
 
-    return Response(serializer.errors, status=400)
+    return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT'])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    user = request.user
+    if request.method == 'GET':
+        serializer = UserProfileSerializer(user)
+        return Response(serializer.data)
+    elif request.method == 'PUT':
+        serializer = UserProfileSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_account(request):
+    user = request.user
+    password = request.data.get("password")
+
+    if not password:
+        return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not user.check_password(password):
+        return Response({'error': 'Incorrect password'}, status=status.HTTP_403_FORBIDDEN)
+
+    user.delete()
+    return Response({'message': 'Account deleted successfully'}, status=status.HTTP_200_OK)
 

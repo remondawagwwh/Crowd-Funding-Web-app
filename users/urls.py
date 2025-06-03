@@ -7,4 +7,6 @@ urlpatterns = [
     path('login/', UserLoginView, name='user-login'),
     path('forgot-password/', forgot_password_request, name='forgot-password'),
     path('reset-password/<str:uid>/<str:token>/', reset_password, name='reset-password'),
+    path('profile/', user_profile, name='user-profile'),
+    path('profile/delete/', delete_account, name='delete-account'),
 ]
