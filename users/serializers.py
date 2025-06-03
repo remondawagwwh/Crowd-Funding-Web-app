@@ -62,15 +62,15 @@ class UserLoginSerializer(serializers.Serializer):
     password = serializers.CharField(required=True, write_only=True)
 
     def validate(self, data):
-        user = authenticate(email=data['email'], password=data['password'])
-
+        user = authenticate(username=data['email'], password=data['password'])  # أو email حسب إعداداتك
         if not user:
             raise serializers.ValidationError("Invalid credentials.")
 
         if not user.is_active:
             raise serializers.ValidationError("Account not activated. Please check your email.")
 
-        return user
+        return {'user': user}
+
 
 
 class ForgotPasswordSerializer(serializers.Serializer):
