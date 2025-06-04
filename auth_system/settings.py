@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'knox',
     'social_django',
     'corsheaders',
+    'donations',
+    'project',
     'comment_app',
 ]
 
