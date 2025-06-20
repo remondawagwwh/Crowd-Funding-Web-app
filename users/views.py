@@ -1,28 +1,31 @@
-from rest_framework import  viewsets
-from django.shortcuts import get_object_or_404
-from .serializers import *
-from .models import MyUser
-from django.template.loader import render_to_string
-from django.utils.encoding import force_str,force_bytes
-from django.utils.http import urlsafe_base64_decode
-from django.core.mail import send_mail
+from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
-from django.utils.http import urlsafe_base64_encode
-from django.contrib.sites.shortcuts import get_current_site
-from rest_framework.permissions import IsAuthenticated
-from .serializers import UserProfileSerializer
-from dj_rest_auth.registration.views import SocialLoginView
+from django.shortcuts import get_object_or_404
+from django.utils.encoding import force_str, force_bytes
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.core.mail import EmailMultiAlternatives, send_mail
+from django.conf import settings
+from rest_framework.authtoken.models import Token
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
-
+from dj_rest_auth.registration.views import SocialLoginView
+from .models import MyUser
+from .serializers import (
+    MyUser_ser,
+    UserRegistrationSerializer,
+    UserLoginSerializer,
+    ForgotPasswordSerializer,
+    ResetPasswordSerializer,
+    UserProfileSerializer
+)
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = MyUser.objects.all()
     serializer_class = MyUser_ser
-
 
 
 @api_view(['POST'])
@@ -31,21 +34,20 @@ def UserRegistrationView(request):
     userobj = UserRegistrationSerializer(data=request.data)
     if userobj.is_valid():
         user = userobj.save()
-
-        subject = 'Activate Your Account'
         uid = urlsafe_base64_encode(force_bytes(user.pk))
-        domain = get_current_site(request).domain
-        message = render_to_string('users/verification_email.html', {
+        domain = settings.MY_DOMAIN
+        html_message = render_to_string('users/verification_email.html', {
             'user': user,
             'domain': domain,
             'uid': uid,
             'token': user.activation_token
         })
-
-        send_mail(subject, message, 'noreply@charity.com', [user.email])
-        return Response(data=userobj.data, status=status.HTTP_201_CREATED)
-    else:
-        return Response(data={'errors': userobj.errors}, status=status.HTTP_400_BAD_REQUEST)
+        plain_message = strip_tags(html_message)
+        email = EmailMultiAlternatives('Activate Your Account', plain_message, settings.DEFAULT_FROM_EMAIL, [user.email])
+        email.attach_alternative(html_message, "text/html")
+        email.send()
+        return Response(userobj.data, status=status.HTTP_201_CREATED)
+    return Response({'errors': userobj.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -61,8 +63,7 @@ def verify_email(request, uid, token):
         user.is_active = True
         user.save()
         return Response({'msg': 'Email confirmed successfully. You can now login.'}, status=status.HTTP_200_OK)
-    else:
-        return Response({'msg': 'Invalid or expired token'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+    return Response({'msg': 'Invalid or expired token'}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
 @api_view(['POST'])
@@ -71,16 +72,18 @@ def UserLoginView(request):
     serializer = UserLoginSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.validated_data['user']
+        Token.objects.filter(user=user).delete()
+        token = Token.objects.create(user=user)
         user_data = {
             'id': user.id,
             'email': user.email,
             'username': user.username,
             'first_name': user.first_name,
             'last_name': user.last_name,
+            'token': token.key,
         }
-        return Response({'msg': 'Login successful', 'user': user_data}, status=status.HTTP_200_OK)
-    else:
-        return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'msg': 'Login successful', 'user': user_data, 'token': token.key}, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
 
 
 @api_view(['POST'])
@@ -90,17 +93,13 @@ def forgot_password_request(request):
     if serializer.is_valid():
         user = MyUser.objects.get(email=serializer.validated_data['email'])
         token = user.generate_reset_token()
-
-        subject = "Password Reset Request"
         message = render_to_string('users/reset_password_email.html', {
             'user': user,
             'domain': request.get_host(),
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
             'token': token
         })
-
-        send_mail(subject, message, 'noreply@charity.com', [user.email])
-
+        send_mail('Password Reset Request', message, settings.DEFAULT_FROM_EMAIL, [user.email])
         return Response({'message': 'Password reset email sent.'}, status=200)
     return Response(serializer.errors, status=400)
 
@@ -123,9 +122,9 @@ def reset_password(request, uid, token):
         user.reset_token = ''
         user.reset_token_expires = None
         user.save()
-        return Response({'msg': 'Password reset successful'}, status.HTTP_200_OK)
+        return Response({'msg': 'Password reset successful'}, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT'])
 @permission_classes([IsAuthenticated])
@@ -139,28 +138,30 @@ def user_profile(request):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_account(request):
     user = request.user
     password = request.data.get("password")
-
     if not password:
         return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
-
     if not user.check_password(password):
         return Response({'error': 'Incorrect password'}, status=status.HTTP_403_FORBIDDEN)
-
     user.delete()
     return Response({'message': 'Account deleted successfully'}, status=status.HTTP_200_OK)
 
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def logout_view(request):
+    try:
+        request.user.auth_token.delete()
+    except Exception:
+        return Response({'error': 'Token not found or already deleted.'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'message': 'Logged out successfully.'}, status=status.HTTP_200_OK)
+
 class FacebookLogin(SocialLoginView):
     adapter_class = FacebookOAuth2Adapter
-
