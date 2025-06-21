@@ -122,6 +122,7 @@ DEFAULT_FROM_EMAIL = 'remondawageh88@gmail.com'
 # Authentication
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
     'users.backends.EmailBackend',
 )
 
@@ -139,9 +140,8 @@ REST_FRAMEWORK = {
 SOCIALACCOUNT_PROVIDERS = {
     'facebook': {
         'APP': {
-                    'client_id': '1387155645842702',
-                    'secret': 'e756034141af46a873b7aefeea50223b',
-                    'key': ''
+                    'client_id': '1753699202239388',
+                    'secret': 'fdcf0af3a69ad436a79f3529cd7e1d82'
                 },
         'METHOD': 'oauth2',
         'SDK_URL': 'https://connect.facebook.net/en_US/sdk.js',
@@ -156,3 +156,8 @@ SOCIALACCOUNT_PROVIDERS = {
         'VERSION': 'v17.0',
     }
 }
+REST_USE_JWT = False  # مهم جدا لو مش عايز تستخدم JWT
+
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = "optional"

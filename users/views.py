@@ -21,7 +21,7 @@ from .serializers import (
     ResetPasswordSerializer,
     UserProfileSerializer
 )
-
+from django.http import JsonResponse
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = MyUser.objects.all()
@@ -165,3 +165,7 @@ def logout_view(request):
 
 class FacebookLogin(SocialLoginView):
     adapter_class = FacebookOAuth2Adapter
+
+
+def account_inactive_view(request):
+    return JsonResponse({"detail": "Your account is inactive. Please contact support."}, status=403)
